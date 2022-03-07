@@ -1,0 +1,56 @@
+sudo apt-get install php7.2 php7.2-gd php-mysql mysql-server apache2 git
+sudo mysql -u root -p
+	Enter password: 	(cứ Enter luôn)
+	CREATE DATABASE dvwadb;
+	CREATE USER 'dvwauser'@'localhost' identified by 'dvwapass';
+	GRANT ALL PRIVILEGES ON dvwadb.* TO 'dvwauser'@'localhost';
+	FLUSH PRIVILEGES;
+	exit;
+cd /var/www/html
+sudo git clone https://github.com/digininja/DVWA.git
+sudo chmod 777 /var/www/html/DVWA/config
+sudo chmod 666 /var/www/html/DVWA/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt
+sudo chmod 777 /var/www/html/DVWA/hackable/uploads/
+Note: nếu muốn mở thẳng web vào DVWA thì
+	sudo nano /etc/apache2/sites-enabled/000-default.conf
+	Append "/DVWA" as the end of "/var/www/html" :
+		DocumentRoot /var/www/html/DVWA
+sudo cp /var/www/html/DVWA/config/config.inc.php.dist /var/www/html/DVWA/config/config.inc.php
+sudo nano /var/www/html/DVWA/config/config.inc.php
+	$_DVWA[ 'db_server' ] = '127.0.0.1';
+	$_DVWA[ 'db_database' ] = 'dvwadb';
+	$_DVWA[ 'db_user' ] = 'dvwauser';
+	$_DVWA[ 'db_password' ] = 'dvwapass';
+Go to https://www.google.com/recaptcha/admin to generate the keys for 'Insecure CAPTCHA' module and add to the related items at "config.inc.php".
+	site key: 6LeqW7seAAAAAMBI6G6CYedNeyBtkFUjb-ZRdk_i
+	secret key: 6LeqW7seAAAAAGQooH3-HtSsnpnwb7cQVaCF6jmY
+sudo systemctl restart apache2
+Web-Access
+	http://localhost/DVWA/login.php
+
+- Fix PHP function allow_url_include: Missing
+#sudo nano /etc/php/7.2/apache2/php.ini
+replace allow_url_include = On
+#service apache2 restart
+
+- Fix reCAPCHA key: Missing
+site key: 6LeqW7seAAAAAMBI6G6CYedNeyBtkFUjb-ZRdk_i
+secret key: 6LeqW7seAAAAAGQooH3-HtSsnpnwb7cQVaCF6jmY
+	# sudo nano /var/www/html/DVWA/config/config.inc.php
+	# service apache2 restart
+
+- Fix PHP module gd: Missing
+Install # sudo apt-get install php7.2-gd -y
+		# service apache2 restart
+
+Fix [User: root] Writable folder /var/www/html/DVWA/hackable/uploads/: No
+	[User: root] Writable file /var/www/html/DVWA/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt: No
+	[User: root] Writable folder /var/www/html/DVWA/config: No
+sudo chgrp www-data /var/www/html/DVWA/hackable/uploads/
+sudo chgrp www-data /var/www/html/DVWA/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt
+sudo chgrp www-data /var/www/html/DVWA/config
+service apache2 restart
+sudo chmod g+w /var/www/html/DVWA/hackable/uploads/
+sudo chmod g+w /var/www/html/DVWA/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt
+sudo chmod g+w /var/www/html/DVWA/config
+service apache2 restart
